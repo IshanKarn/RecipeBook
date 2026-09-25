@@ -1,0 +1,38 @@
+﻿# Local development dependencies only (PostgreSQL + Redis).
+# The full stack compose file (docker-compose.yml) is added in module 11.
+# Postgres is published on host port 5434 to avoid clashing with a locally installed Postgres.
+name: recipebook-dev
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: recipebook
+      POSTGRES_PASSWORD: recipebook
+      POSTGRES_DB: recipebook
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recipebook -d recipebook"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:
